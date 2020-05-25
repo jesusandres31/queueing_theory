@@ -21,6 +21,7 @@ classdef queueing
             tiemposServicio = guia5.exponencial(p_tServ, p_sujetos);
             % Arreglo con los tiempos entre las llegadas de cada sujeto/cliente
             tiemposEntreLlegadas = guia5.exponencial(p_tLleg, p_sujetos);
+            tiemposEntreLlegadas(1,1) = 0;
             llegadaACola = zeros(1, p_sujetos);
             tiemposEnCola = zeros(1, p_sujetos);
             tiempo = 0;
@@ -64,11 +65,11 @@ classdef queueing
                 % Cuenta las personas en la cola hasta que el sujeto/cliente
                 % termina de ser atendido
                 sujetosCola = 0;
-                if i < p_sujetos
+                if i > 1
                     % No se cuenta al cliente/sujeto siendo atendido porque
                     % este no esta en la cola
-                    for j = i + 1 : p_sujetos
-                        if llegadaACola(1, j) <= 0
+                    for j = 1 : i - 1
+                        if tablaResultados(i, 2) <= tablaResultados(j, 7)
                           sujetosCola = sujetosCola + 1;
                         end
                     end
