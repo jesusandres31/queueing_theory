@@ -16,7 +16,7 @@ classdef queueing
     methods (Static)
         
 
-        function corrida (p_sujetos, p_tLleg, p_tServ)
+        function tablaResultados = corrida (p_sujetos, p_tLleg, p_tServ)
             import pkg.guia5.*;
             % Arreglo con los tiempos de servicio para cada sujeto/cliente
             tiemposServicio = guia5.exponencial(p_tServ, p_sujetos);
@@ -98,11 +98,11 @@ classdef queueing
                 tablaResultados(i, 9) = tiemposOcioServ;
                
             end   
-            queueing.mostrarResultadoSimulacion(tablaResultados);
-            queueing.calcular_media(tablaResultados);
+            queueing.mostrarResultadoCorrida(tablaResultados);
+            %queueing.calcularMediaCorrida(tablaResultados);
         end
 
-        function mostrarResultadoSimulacion(p_tabla)
+        function mostrarResultadoCorrida(p_tabla)
             
             fprintf('\n\n\t\t\tEjecucion de Modelo de Colas\n\n');
             colNames = {'Sujeto', 'TiempoLlegadaACola','TiempoServicio','TiempoEntreLlegadas','TiempoEnCola','TiempoEnSistema','TiempoSalida', 'PersonasEnCola','TiempoOcioServicio'};
@@ -112,7 +112,7 @@ classdef queueing
         end
         
         
-        function calcular_media(p_tabla)
+        function calcularMediaCorrida(p_tabla)
             
             fprintf('\n\n\t\t\tPromedios todo\n\n');
             colNames = {'Sujeto', 'TiempoLlegadaACola','TiempoServicio','TiempoEntreLlegadas','TiempoEnCola','TiempoEnSistema','TiempoSalida', 'PersonasEnCola','TiempoOcioServicio'};
@@ -256,6 +256,64 @@ classdef queueing
             
             media_tiemposOcioServ = mean(v_tiemposOcioServ);
             fprintf('\n\t\ttiemposOcioServ: %.4f\n\n',media_tiemposOcioServ);
+            
+        end
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        %%Sugerencia Cambios corridaMedias
+        
+        function experimento(p_corridas, p_sujetos, p_tLleg, p_tServ)
+            tablaExperimento = zeros (p_corridas, 9);
+                       
+            for i = 1 : p_corridas
+                tablaCorrida = queueing.corrida(p_sujetos, p_tLleg, p_tServ);
+                
+                %Numero de corrida
+                tablaExperimento(i, 1) = i;
+                
+                %PARAMETROS
+                %Cantidad de sujetos
+                tablaExperimento(i, 2) = p_sujetos;
+                %Lambda tiempo entre llegadas
+                tablaExperimento(i, 3) = p_tLleg;
+                %Lambda tiempo de servicio
+                tablaExperimento(i, 4) = p_tServ;
+                
+                %RESULTADOS                
+                %Media tiempo de llegada
+                tablaExperimento(i, 5) = mean(tablaCorrida(:, 2)); 
+                %Media tiempo de espera en cola
+                tablaExperimento(i, 6) = mean(tablaCorrida(:, 5));
+                %Media tiempo de permanencia en el sistema
+                tablaExperimento(i, 7) = mean(tablaCorrida(:, 6)); 
+                %Media sujetos en la cola
+                tablaExperimento(i, 8) = mean(tablaCorrida(:, 8)); 
+                %Media tiempo de ocio del servidor
+                tablaExperimento(i, 9) = mean(tablaCorrida(:, 9)); 
+            end
+            
+            queueing.mostrarResultadoExperimento(tablaExperimento);
+                     
+        end
+        
+        
+        function mostrarResultadoExperimento(p_tabla)
+            
+            fprintf('\n\n\t\t\tExperimento Modelo de Colas\n\n');
+            colNames = {'Corrida','CantidadSujetos','TiempoLambdaEntreLlegadas','TiemposLambdaDeServicio','MediaTiempoLlegadaACola','MediaTiempoEnCola','MediaTiempoEnSistema','MediaPersonasEnCola','MediaTiempoOcioServicio'};
+            sTable = array2table(p_tabla,'VariableNames',colNames);
+            disp (sTable);
             
         end
 
