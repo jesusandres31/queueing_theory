@@ -147,19 +147,35 @@ classdef queueing
                 tablaResultados(i, 9) = mean(tablaCorrida(:, 9));
                 
                 tablaExperimento(posicionesFilas + p_sujetos*(i - 1),posicionesColumnas) = tablaCorrida;
+                queueing.graficarExperimento(tablaResultados(i, 5), tablaResultados(i, 6), tablaResultados(i, 7));
+                
             end
             
             fprintf('\n\n\t\t\tExperimento Modelo de Colas\n\n');
             colNames = {'Corrida','CantidadSujetos','TiempoLambdaEntreLlegadas','TiemposLambdaDeServicio','MediaTiempoLlegadaACola','MediaTiempoEnCola','MediaTiempoEnSistema','MediaPersonasEnCola','MediaTiempoOcioServicio'};
             sTable = array2table(tablaResultados,'VariableNames',colNames);
-            disp (sTable);
-                     
+            disp (sTable);    
         end
         
         
+        function graficarExperimento(p_llegada, p_cola, p_sistema)
+            c = categorical({'Tiempo de llegada','Espera en la cola','Permanencia en el sistema'});
+            promedios = [p_llegada p_cola p_sistema];
+            b = bar(c,promedios);
+            queueing.barColorConfig(b);
+            title('Promedios del experimento');
+            ylabel('Tiempo en minutos');
+            grid on
+        end
         
-        
-        
+        function barColorConfig(p_b)
+            p_b.EdgeColor =  [.1 .1 0];
+            p_b.LineWidth = 1.5;
+            p_b.FaceColor = 'flat';
+            p_b.CData(1,:) = [0 .5 .5];
+            p_b.CData(2,:) = [.5 0 .5];
+            p_b.CData(3,:) = [1,1,0];
+        end
         
         
         %% Recibe como parametros dos array de lambdas (tiempos entre llegadas y tiempo de servicio)
@@ -193,22 +209,31 @@ classdef queueing
                 tablaSimulacion(i, 8) = mean(tablaExperimento(:, 6));  
                 %Media tiempo de ocio del servidor
                 tablaSimulacion(i, 9) = mean(tablaExperimento(:, 9)); 
+               
             end
             
             queueing.mostrarResultadoSimulacion(tablaSimulacion);
-                     
+            queueing.graficarSimulacion(tablaSimulacion(i, 5), tablaSimulacion(i, 7), tablaSimulacion(i, 8));         
         end
         
         
         function mostrarResultadoSimulacion(p_tabla)
-            
             fprintf('\n\n\t\t\tSimulacion Modelo de Colas\n\n');
             colNames = {'Corrida','CantidadSujetos','TiemposLambdaDeServicio','MediaTiempoServicio','MediaTiempoLlegadaACola','VariacionTiempoLlegada','MediaTiempoEnCola','MediaTiempoEnSistema','MediaTiempoOcioServicio'};
             sTable = array2table(p_tabla,'VariableNames',colNames);
             disp (sTable);
-            
         end
-
+        
+        function graficarSimulacion(p_llegada, p_cola, p_sistema)
+            c = categorical({'Tiempo de llegada','Espera en la cola','Permanencia en el sistema'});
+            promedios = [p_llegada p_cola p_sistema];
+            b = bar(c,promedios);
+            queueing.barColorConfig(b);
+            title('Promedios de la simulación');
+            ylabel('Tiempo en minutos');
+            grid on
+        end
+        
 
     end
 
