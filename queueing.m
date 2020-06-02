@@ -28,7 +28,7 @@ classdef queueing
             tiempo = 0;
             tiemposOcioServ = 0;
             tablaResultados = zeros(p_sujetos,9);
-
+            
             % Calculos del tiempo de llegada de cada cliente/sujeto a la
             % cola
             llegadaACola(1, 1) = tiemposEntreLlegadas(1, 1);
@@ -96,11 +96,10 @@ classdef queueing
                 tablaResultados(i, 8) = sujetosCola;
                 % Cantidad de tiempo que el servidor no esta atendiendo
                 tablaResultados(i, 9) = tiemposOcioServ;
-               
+
             end   
             queueing.mostrarResultadoCorrida(tablaResultados);
         end
-        
 
         function mostrarResultadoCorrida(p_tabla)
             
@@ -119,6 +118,7 @@ classdef queueing
             tablaExperimento = zeros (p_sujetos * p_corridas, 9);
             posicionesFilas = 1:1:p_sujetos;
             posicionesColumnas = 1:1:9;
+            v_barras = [];
                        
             for i = 1 : p_corridas
                 tablaCorrida = queueing.corrida(p_sujetos, p_tLleg(1,i), p_tServ);
@@ -146,36 +146,32 @@ classdef queueing
                 %Media tiempo de ocio del servidor
                 tablaResultados(i, 9) = mean(tablaCorrida(:, 9));
                 
+                valor_i = i;
                 tablaExperimento(posicionesFilas + p_sujetos*(i - 1),posicionesColumnas) = tablaCorrida;
-                queueing.graficarExperimento(tablaResultados(i, 5), tablaResultados(i, 6), tablaResultados(i, 7));
                 
+                y = [tablaResultados(i, 5) tablaResultados(i, 6) tablaResultados(i, 7)];
+                v_barras = [v_barras; y];
             end
             
             fprintf('\n\n\t\t\tExperimento Modelo de Colas\n\n');
             colNames = {'Corrida','CantidadSujetos','TiempoLambdaEntreLlegadas','TiemposLambdaDeServicio','MediaTiempoLlegadaACola','MediaTiempoEnCola','MediaTiempoEnSistema','MediaPersonasEnCola','MediaTiempoOcioServicio'};
             sTable = array2table(tablaResultados,'VariableNames',colNames);
             disp (sTable);    
+            
+            queueing.graficarExperimento(v_barras)
         end
         
-        
-        function graficarExperimento(p_llegada, p_cola, p_sistema)
-            c = categorical({'Tiempo de llegada','Espera en la cola','Permanencia en el sistema'});
-            promedios = [p_llegada p_cola p_sistema];
-            b = bar(c,promedios);
-            queueing.barColorConfig(b);
-            title('Promedios del experimento');
+        function graficarExperimento(p_barras)
+            b = bar(p_barras, 'LineWidth',1.5);
+            title('Tiempos promedios de las corridas en un experimento');
             ylabel('Tiempo en minutos');
+            xlabel('Nro. de corrida');
             grid on
+            legend(b,'Media tiempo de llegada','Media tiempo de espera en cola ','Media tiempo de permanencia en el sistema','location','northoutside');
+            figure;
         end
-        
-        function barColorConfig(p_b)
-            p_b.EdgeColor =  [.1 .1 0];
-            p_b.LineWidth = 1.5;
-            p_b.FaceColor = 'flat';
-            p_b.CData(1,:) = [0 .5 .5];
-            p_b.CData(2,:) = [.5 0 .5];
-            p_b.CData(3,:) = [1,1,0];
-        end
+    
+
         
         
         %% Recibe como parametros dos array de lambdas (tiempos entre llegadas y tiempo de servicio)
@@ -231,9 +227,17 @@ classdef queueing
             queueing.barColorConfig(b);
             title('Promedios de la simulación');
             ylabel('Tiempo en minutos');
-            grid on
+            grid on 
         end
         
+         function barColorConfig(p_b)
+            p_b.EdgeColor =  [.1 .1 0];
+            p_b.LineWidth = 1.5;
+            p_b.FaceColor = 'flat';
+            p_b.CData(1,:) = [0 .5 .5];
+            p_b.CData(2,:) = [.5 0 .5];
+            p_b.CData(3,:) = [1,1,0];
+        end
 
     end
 
