@@ -23,75 +23,44 @@
 %  Tipo de cola FIFO (First In First Out)
 %%
 
-classdef Parcial2
+classdef VariosClientesPorTurno
     methods (Static)
         
 
-        function unClientePorTurno (p_maxCantClientes, p_tServ, p_cantServidores, p_cantHoras)
+        function corrida (p_maxCantClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos)
             import pkg.guia5.*;          
             % Arreglo con los tiempos entre las llegadas de cada sujeto/cliente
             cantClientes = guia5.poisson(p_maxCantClientes, 1);      
             if cantClientes > p_maxCantClientes
                 cantClientes = p_maxCantClientes;
-            end    
-            
-            llegadaACola = 0:(p_cantHoras*60)/cantClientes:(p_cantHoras + 1)*60;
-            
-            % Cantidad de tiempo que transcurre entre las llegadas de 
-            % clientes/sujetos consecutivos
-            tiempoEntreLlegadas = zeros(1,cantClientes);
-            tiempoEntreLlegadas(1,2:1:cantClientes) = (p_cantHoras*60)/cantClientes;
-            
-            
-            Parcial2.corrida(cantClientes, p_tServ, p_cantServidores, tiempoEntreLlegadas, llegadaACola);
-            
-        end
-
-        
-        
-        function variosClientesPorTurno (p_maxCantClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos)
-            import pkg.guia5.*;          
-            % Arreglo con los tiempos entre las llegadas de cada sujeto/cliente
-            cantClientes = guia5.poisson(p_maxCantClientes, 1);      
-            if cantClientes > p_maxCantClientes
-                cantClientes = p_maxCantClientes;
-            end          
-            
-            llegadaACola(1,1:1:p_cantClientesTurno) = 0;
-            for i= p_cantClientesTurno + 1 : p_cantClientesTurno : cantClientes
-                llegadaACola(1,i:1:p_cantClientesTurno + i - 1) = llegadaACola(1,i-1) + p_intervaloEntreTurnos;
             end
-            
-            % Cantidad de tiempo que transcurre entre las llegadas de 
-            % clientes/sujetos consecutivos
-            tiempoEntreLlegadas = zeros(1,cantClientes);
-            tiempoEntreLlegadas(1,p_cantClientesTurno + 1:p_cantClientesTurno:cantClientes) = p_intervaloEntreTurnos;
-            
-            Parcial2.corrida(cantClientes, p_tServ, p_cantServidores, tiempoEntreLlegadas, llegadaACola);
-            
-        end
-        
-        function corrida(p_cantClientes, p_tServ, p_cantServidores, p_tiempoEntreLlegadas, p_llegadaACola)
-            
-            tablaResultados = zeros(p_cantClientes,10 + p_cantServidores);
-            tablaResultados(:,2) = p_llegadaACola(1,1:1:p_cantClientes).';
-            tablaResultados(:,4) = p_tiempoEntreLlegadas(1,1:1:p_cantClientes).';
-            
-            tiemposEnCola = zeros(1, p_cantClientes);
+            tiemposEnCola = zeros(1, cantClientes);
             tiempo = 0;
-            tiemposOcioServidores = zeros(1,p_cantServidores);           
+            tiemposOcioServidores = zeros(1,p_cantServidores);
+            tablaResultados = zeros(cantClientes,10 + p_cantServidores);
             
             % Tiempo de servicio asignado a servidores dinamicamente
             servidores = zeros(1,p_cantServidores);
             
-            tiemposServicio = guia5.exponencial(p_tServ, p_cantClientes);
+            tiemposServicio = guia5.exponencial(p_tServ, cantClientes);
+
+            llegadaACola(1,1:1:p_cantClientesTurno) = 0;
+            for i= p_cantClientesTurno + 1 : p_cantClientesTurno : cantClientes
+                llegadaACola(1,i:1:p_cantClientesTurno + i - 1) = llegadaACola(1,i-1) + p_intervaloEntreTurnos;
+            end
+            tablaResultados(:,2) = llegadaACola(1,1:1:cantClientes).';
+            
+            % Cantidad de tiempo que transcurre entre las llegadas de 
+            % clientes/sujetos consecutivos
+            tablaResultados(1:1:cantClientes, 4) = 0;
+            tablaResultados(p_cantClientesTurno + 1:p_cantClientesTurno:cantClientes, 4) = p_intervaloEntreTurnos;
             
             
-            for i = 1 : p_cantClientes 
+            for i = 1 : cantClientes 
                 
                 % Llegada a la cola
-                tiempo = tiempo + p_llegadaACola(1, i);
-                servidores(1,:) = servidores(1,:) - p_llegadaACola(1, i);
+                tiempo = tiempo + llegadaACola(1, i);
+                servidores(1,:) = servidores(1,:) - llegadaACola(1, i);
                 
                 
                 %Control Servidores
@@ -115,7 +84,7 @@ classdef Parcial2
                     end
                 end
                 
-                p_llegadaACola(1, :) = p_llegadaACola(1, :) - p_llegadaACola(1, i);
+                llegadaACola(1, :) = llegadaACola(1, :) - llegadaACola(1, i);
                 sujetosCola = 0;
                 
                 %
@@ -139,7 +108,7 @@ classdef Parcial2
                     tiemposEnCola(1, i) = minimo;
                     tiempo = tiempo + minimo;
                     servidores(1,:) = servidores(1,:) - minimo;
-                    p_llegadaACola(1, :) = p_llegadaACola(1, :) - minimo;
+                    llegadaACola(1, :) = llegadaACola(1, :) - minimo;
                     servidores(1,indiceMin) = tiemposServicio(1,i);                    
                     
                 end
@@ -160,7 +129,7 @@ classdef Parcial2
                 % Cantidad de clientes/sujetos esperando en la cola para
                 % ser atendidos
                 tablaResultados(i, 8) = sujetosCola;
-                % Numero de Servidor Asignado
+                % Servidor Asignado
                 tablaResultados(i, 9) = servidorAsignado;
                 % Cantidad de tiempo que los servidores no estan atendiendo
                 tablaResultados(i, 10:1: 9 + p_cantServidores) = tiemposOcioServidores;
@@ -168,7 +137,7 @@ classdef Parcial2
                 tablaResultados(i, 10 + p_cantServidores) = sum(tiemposOcioServidores);
                
             end      
-            Parcial2.mostrarResultadoCorrida(tablaResultados);
+            VariosClientesPorTurno.mostrarResultadoCorrida(tablaResultados);
         end
         
 
@@ -177,7 +146,7 @@ classdef Parcial2
             fprintf('\n\n\t\t\tEjecucion de Modelo de Colas\n\n');
             colNames = {'Sujeto', 'TiempoLlegadaACola','TiempoServicio','TiempoEntreLlegadas','TiempoEnCola','TiempoEnSistema','TiempoSalida', 'PersonasEnCola', 'Servidor'};
             for i = 10 : size(p_tabla,2) - 1
-                colNames{1,i} = strcat('TiempoOcioServidor', num2str(i - 9,'%i'));               
+                colNames{1,i} = strcat('TiempoOcioServidor', num2str(i - 8,'%i'));               
             end
             colNames{1,size(p_tabla,2)} = 'TiempoOcioServidorTotal';
             sTable = array2table(p_tabla,'VariableNames',colNames);
