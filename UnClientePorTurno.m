@@ -37,8 +37,7 @@ classdef UnClientePorTurno
                 cantClientes = p_maxCantClientes;
             end          
             tiemposEnCola = zeros(1, cantClientes);
-            tiempo = 0;
-            tiemposOcioServidores = zeros(1,p_cantServidores);
+            tiempo = 0;            
             tablaResultados = zeros(cantClientes,10 + p_cantServidores);
             
             % Tiempo de servicio asignado a servidores dinamicamente
@@ -57,6 +56,8 @@ classdef UnClientePorTurno
             
             
             for i = 1 : cantClientes 
+
+                tiemposOcioServidores = zeros(1,p_cantServidores);
                 
                 % Llegada a la cola
                 tiempo = tiempo + llegadaACola(1, i);
@@ -70,7 +71,7 @@ classdef UnClientePorTurno
                     if servLibre
                         if servidores(1,j) <= 0
                             
-                            tiemposOcioServidores(1,j) = tiemposOcioServidores(1,j) + tiempoLibreServidor;
+                            tiemposOcioServidores(1,j) = tiempoLibreServidor;
                             servidores(1,j) = 0;
                         end
                     else
@@ -78,7 +79,7 @@ classdef UnClientePorTurno
                             
                             servLibre = true;
                             servidorAsignado = j;
-                            tiemposOcioServidores(1,j) = tiemposOcioServidores(1,j) + tiempoLibreServidor;
+                            tiemposOcioServidores(1,j) = tiempoLibreServidor;
                             servidores(1,j) = tiemposServicio(1,i); 
                         end
                     end

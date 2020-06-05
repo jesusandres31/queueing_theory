@@ -26,7 +26,7 @@ classdef queueing
             llegadaACola = zeros(1, p_sujetos);
             tiemposEnCola = zeros(1, p_sujetos);
             tiempo = 0;
-            tiemposOcioServ = 0;
+            
             tablaResultados = zeros(p_sujetos,9);
             
             % Calculos del tiempo de llegada de cada cliente/sujeto a la
@@ -41,12 +41,12 @@ classdef queueing
             end
             
             for i = 1 : p_sujetos 
-                
+                tiemposOcioServ = 0;
                 % Llegada a la cola
                 if llegadaACola(1, i) > 0
                     % Si no hay nadie en la cola el servidor esta ocioso
                     % hasta la llegada del cliente/sujeto
-                    tiemposOcioServ = tiemposOcioServ + llegadaACola(1, i);
+                    tiemposOcioServ = llegadaACola(1, i);
                     tiempo = tiempo + llegadaACola(1, i);
                     % Se le resta el tiempo transcurrido a los tiempos de 
                     % llegadas de todos los clientes/sujetos
@@ -234,7 +234,7 @@ classdef queueing
         
         function mostrarResultadoSimulacion(p_tabla)
             fprintf('\n\n\t\t\tSimulacion Modelo de Colas\n\n');
-            colNames = {'Corrida','CantidadSujetos','TiemposLambdaDeServicio','MediaTiempoServicio','MediaTiempoLlegadaACola','VariacionTiempoLlegada','MediaTiempoEnCola','MediaTiempoEnSistema','MediaTiempoOcioServicio'};
+            colNames = {'Experimento','CantidadSujetos','TiemposLambdaDeServicio','MediaTiempoServicio','MediaTiempoLlegadaACola','VariacionTiempoLlegada','MediaTiempoEnCola','MediaTiempoEnSistema','MediaTiempoOcioServicio'};
             sTable = array2table(p_tabla,'VariableNames',colNames);
             disp (sTable);
         end

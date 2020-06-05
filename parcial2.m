@@ -79,7 +79,7 @@ classdef Parcial2
             
             tiemposEnCola = zeros(1, p_cantClientes);
             tiempo = 0;
-            tiemposOcioServidores = zeros(1,p_cantServidores);           
+            %tiemposOcioServidores = zeros(1,p_cantServidores);           
             
             % Tiempo de servicio asignado a servidores dinamicamente
             servidores = zeros(1,p_cantServidores);
@@ -87,7 +87,9 @@ classdef Parcial2
             tiemposServicio = guia5.exponencial(p_tServ, p_cantClientes);
             
             
-            for i = 1 : p_cantClientes 
+            for i = 1 : p_cantClientes
+                
+                tiemposOcioServidores = zeros(1,p_cantServidores);
                 
                 % Llegada a la cola
                 tiempo = tiempo + p_llegadaACola(1, i);
@@ -101,7 +103,7 @@ classdef Parcial2
                     if servLibre
                         if servidores(1,j) <= 0
                             
-                            tiemposOcioServidores(1,j) = tiemposOcioServidores(1,j) + tiempoLibreServidor;
+                            tiemposOcioServidores(1,j) = tiempoLibreServidor;
                             servidores(1,j) = 0;
                         end
                     else
@@ -109,7 +111,7 @@ classdef Parcial2
                             
                             servLibre = true;
                             servidorAsignado = j;
-                            tiemposOcioServidores(1,j) = tiemposOcioServidores(1,j) + tiempoLibreServidor;
+                            tiemposOcioServidores(1,j) = tiempoLibreServidor;
                             servidores(1,j) = tiemposServicio(1,i); 
                         end
                     end
