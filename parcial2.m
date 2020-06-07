@@ -71,6 +71,7 @@ classdef Parcial2
             
         end
         
+        
         function corrida(p_cantClientes, p_tServ, p_cantServidores, p_tiempoEntreLlegadas, p_llegadaACola)
             
             tablaResultados = zeros(p_cantClientes,10 + p_cantServidores);
@@ -78,13 +79,16 @@ classdef Parcial2
             tablaResultados(:,4) = p_tiempoEntreLlegadas(1,1:1:p_cantClientes).';
             
             tiemposEnCola = zeros(1, p_cantClientes);
-            tiempo = 0;
-            %tiemposOcioServidores = zeros(1,p_cantServidores);           
+            tiempo = 0;      
             
             % Tiempo de servicio asignado a servidores dinamicamente
             servidores = zeros(1,p_cantServidores);
             
             tiemposServicio = guia5.exponencial(p_tServ, p_cantClientes);
+
+            v_TiempoEnCola = [];
+            v_OcioServidores = [];
+            v_barras = [];
             
             
             for i = 1 : p_cantClientes
@@ -94,8 +98,7 @@ classdef Parcial2
                 % Llegada a la cola
                 tiempo = tiempo + p_llegadaACola(1, i);
                 servidores(1,:) = servidores(1,:) - p_llegadaACola(1, i);
-                
-                
+
                 %Control Servidores
                 servLibre = false;               
                 for j = 1 : p_cantServidores
@@ -144,8 +147,7 @@ classdef Parcial2
                     p_llegadaACola(1, :) = p_llegadaACola(1, :) - minimo;
                     servidores(1,indiceMin) = tiemposServicio(1,i);                    
                     
-                end
-                                           
+                end                                           
                 
                 % Numero de sujeto/cliente que llega a la cola
                 tablaResultados(i, 1) = i;
@@ -168,11 +170,45 @@ classdef Parcial2
                 tablaResultados(i, 10:1: 9 + p_cantServidores) = tiemposOcioServidores;
                 % Cantidad de tiempo que el servidor no esta atendiendo
                 tablaResultados(i, 10 + p_cantServidores) = sum(tiemposOcioServidores);
-               
+                
+                
+                v_TiempoEnCola = [v_TiempoEnCola tablaResultados(i, 5)];
+                v_OcioServidores = [v_OcioServidores sum(tiemposOcioServidores)];
+
             end      
             Parcial2.mostrarResultadoCorrida(tablaResultados);
+            
+            v_barras = [med_TiempoEnCola; med_OcioServidores];
+            Parcial2.graficarMedias(v_barras);
+            
+            
+            % esto es para ver los valores de las medias, despues lo borro
+            med_TiempoEnCola = (mean(v_TiempoEnCola));
+            fprintf('\n\t\tMedia Tiempo en Cola: %i\n\n', med_TiempoEnCola);
+            med_OcioServidores = (mean(v_OcioServidores));
+            fprintf('\n\t\tMedia Tiempo de Ocio Servidores: %i\n\n', med_OcioServidores);
+            
+            % esto es para ver la estructura del vector v_barra nomas, 
+            % despues lo borro tmb jaja
+            v_barras   
         end
         
+        
+        function graficarMedias(p_barras)
+           figure(1)
+           b = bar(p_barras, 'EdgeColor',[.1 .1 0], 'LineWidth',1.5, 'FaceColor','flat');    
+           b.CData(1,:) = [0 .5 .5];
+           b.CData(2,:) = [.5 0 .5];
+           names={ 'Espera en Cola'; 'Ocio Servidores' };
+           set(gca,'xticklabel',names,'FontSize',10);
+         % xtickangle(45);
+         % legend(b, 'Media tiempo de llegada.','Media tiempo de espera en cola.','location','northoutside');
+         % legend([b(1), b(2)], '2014 Data','2015 Data')
+           title('Tiempos promedios de la simulación.');
+           ylabel('Tiempo en minutos.');
+           grid on
+        end
+
 
         function mostrarResultadoCorrida(p_tabla)
             
