@@ -217,9 +217,8 @@ classdef queueing
                 v_barras = [v_barras; y];
             end
             
-            queueing.mostrarResultadoSimulacion(tablaSimulacion);
-           % queueing.graficarSimulacionTotal(tablaSimulacion(i, 5), tablaSimulacion(i, 7), tablaSimulacion(i, 8));  
-           queueing.graficarSimulacion(v_barras)
+            queueing.mostrarResultadoSimulacion(tablaSimulacion); 
+            queueing.graficarSimulacion(v_barras)
         end
         
         function graficarSimulacion(p_barras)
@@ -238,25 +237,7 @@ classdef queueing
             sTable = array2table(p_tabla,'VariableNames',colNames);
             disp (sTable);
         end
-        
-        function graficarSimulacionTotal(p_llegada, p_cola, p_sistema)
-            c = categorical({'Tiempo de llegada','Espera en la cola','Permanencia en el sistema'});
-            promedios = [p_llegada p_cola p_sistema];
-            b = bar(c,promedios);
-            queueing.barColorConfig(b);
-            title('Promedios de la simulación');
-            ylabel('Tiempo en minutos');
-            grid on 
-        end
-        
-         function barColorConfig(p_b)
-            p_b.EdgeColor =  [.1 .1 0];
-            p_b.LineWidth = 1.5;
-            p_b.FaceColor = 'flat';
-            p_b.CData(1,:) = [0 .5 .5];
-            p_b.CData(2,:) = [.5 0 .5];
-            p_b.CData(3,:) = [1,1,0];
-        end
+
 
     end
 
