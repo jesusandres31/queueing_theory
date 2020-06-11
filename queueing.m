@@ -222,7 +222,7 @@ classdef queueing
         end
         
         function graficarSimulacion(p_barras)
-            b = bar(p_barras, 'EdgeColor',[.1 .1 .5], 'LineWidth',2, 'FaceColor','flat');
+            b = bar(p_barras, 'EdgeColor',[.5 .1 .5], 'LineWidth',2, 'FaceColor','flat');
             title('Tiempos promedios de los experimentos de la simulacion');
             ylabel('Tiempo en minutos');
             xlabel('Nro. de experimento');

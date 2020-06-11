@@ -163,21 +163,11 @@ classdef parcial2
             med_TiempoEnCola = (mean(v_TiempoEnCola));
             med_OcioServidores = (mean(v_OcioServidores));
             v_barras = [med_TiempoEnCola; med_OcioServidores];
-            parcial2.graficarMedias(v_barras);
-            
-            
-            % esto es para ver los valores de las medias, despues lo borro
-            
-            fprintf('\n\t\tMedia Tiempo en Cola: %i\n\n', med_TiempoEnCola);           
-            fprintf('\n\t\tMedia Tiempo de Ocio Servidores: %i\n\n', med_OcioServidores);
-            
-            % esto es para ver la estructura del vector v_barra nomas, 
-            % despues lo borro tmb jaja
-            v_barras   
+           % parcial2.graficarCorrida(v_barras);
         end
         
         
-        function graficarMedias(p_barras)
+        function graficarCorrida(p_barras)
            figure(1)
            b = bar(p_barras, 'EdgeColor',[.1 .1 0], 'LineWidth',1.5, 'FaceColor','flat');    
            b.CData(1,:) = [0 .5 .5];
@@ -213,10 +203,11 @@ classdef parcial2
         %% Recibe como parametro un array de tiempoDeServicio
         % La cantidad de elementos de este array se debe corresponder con
         % la cantidad de corridas estipuladas
-        %
-        function tablaExperimento = experimento(p_corridas, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos)
+        %                                       
+        function tablaExperimento = experimento(p_corridas, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos, p_i)
             tablaResultados = zeros (p_corridas, 12);
             tablaExperimento = [];
+            v_barras = [];
             
             for i = 1 : p_corridas
                 tablaCorrida = parcial2.corrida(p_maxCantClientes, p_lambdaClientes, p_tServ(1,i), p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos);
@@ -253,10 +244,24 @@ classdef parcial2
 
                 tablaExperimento = [tablaExperimento ; tablaCorrida];
                 
+                y = [tablaResultados(i, 10) tablaResultados(i, 8) tablaResultados(i, 11)];
+                v_barras = [v_barras; y];
             end
             
              parcial2.mostrarResultadoExperimento(tablaResultados);   
-
+            
+             parcial2.graficarExperimento(v_barras, p_i)
+        end
+        
+        function graficarExperimento(p_barras, p_i)
+            b = bar(p_barras, 'EdgeColor',[.1 .1 .5], 'LineWidth',1);
+            str = sprintf('Valores medios de las corridas del experimento %d', p_i);
+            title(str, 'FontSize',13);
+           % ylabel('Tiempo en minutos');
+            xlabel('Nro. de corrida');
+            grid on
+            legend(b,'Cantidad de personas en la cola','Tiempo de espera en cola','Tiempo de ocio de los servidores','location','northoutside');
+            figure;
         end
 
         function mostrarResultadoExperimento(p_tabla)
@@ -270,12 +275,13 @@ classdef parcial2
         % La cantidad de elementos de tiempoDeServicio debe ser igual
         % al valor de p_corridas, y la cantidad de elementos de
         % intervalosEntreTurnos igual al valor de p_experimentos
+                                                        
         function simulacion(p_experimentos, p_corridas, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos)
             tablaResultados = zeros (p_experimentos, 11);
-
+            v_barras = [];
                        
             for i = 1 : p_experimentos
-                tablaExperimento = parcial2.experimento(p_corridas, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos(1,i));
+                tablaExperimento = parcial2.experimento(p_corridas, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos(1,i), i);
                 
                 
                 %Numero de corrida
@@ -304,14 +310,26 @@ classdef parcial2
                 tablaResultados(i, 10) = mean(tablaExperimento(:, 10));
                 %Variacion tiempo de ocio del servidor
                 tablaResultados(i, 11) = std(tablaExperimento(:, 10));
-               
+                
+                y = [tablaResultados(i, 9) tablaResultados(i, 7) tablaResultados(i, 10)];
+                v_barras = [v_barras; y];
             end
             
             parcial2.mostrarResultadoSimulacion(tablaResultados);
-
+            
+            parcial2.graficarSimulacion(v_barras)
         end
         
-
+         function graficarSimulacion(p_barras)
+            b = bar(p_barras, 'EdgeColor',[.1 .1 .0], 'LineWidth',1.5, 'FaceColor','flat');
+          %  title('Tiempos promedios de la simulacion');
+            title('Valores medios de la simulacion', 'FontSize',14);          
+           % ylabel('Tiempo en minutos');
+            xlabel('Nro. de experimento');
+            grid on
+            legend(b,'Cantidad de personas en la cola','Tiempo de espera en cola','Tiempo de ocio de los servidores','location','northoutside');
+           % legend(b,'Personas en la cola','Espera en cola','Ocio servidores','location','northoutside');
+        end
         
         function mostrarResultadoSimulacion(p_tabla)
             fprintf('\n\n\t\t\tSimulacion Modelo de Colas\n\n');
