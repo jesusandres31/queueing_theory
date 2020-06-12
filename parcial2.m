@@ -200,8 +200,8 @@ classdef parcial2
         
         
         
-        %% Recibe como parametro un array de tiempoDeServicio
-        % La cantidad de elementos de este array se debe corresponder con
+        %% Recibe como parametro un array de tiempoDeServicio y cantClientesTurno
+        % La cantidad de elementos de estos arrays se debe corresponder con
         % la cantidad de corridas estipuladas
         %                                       
         function tablaExperimento = experimento(p_corridas, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos, p_i)
@@ -210,7 +210,7 @@ classdef parcial2
             v_barras = [];
             
             for i = 1 : p_corridas
-                tablaCorrida = parcial2.corrida(p_maxCantClientes, p_lambdaClientes, p_tServ(1,i), p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos);
+                tablaCorrida = parcial2.corrida(p_maxCantClientes, p_lambdaClientes, p_tServ(1,i), p_cantServidores, p_cantClientesTurno(1,i), p_intervaloEntreTurnos);
                 
                 %Numero de corrida
                 tablaResultados(i, 1) = i;
@@ -225,7 +225,7 @@ classdef parcial2
                 % Cantidad de Servidores
                 tablaResultados(i, 5) = p_cantServidores;
                 % Clientes por turno
-                tablaResultados(i, 6) = p_cantClientesTurno;
+                tablaResultados(i, 6) = p_cantClientesTurno(1,i);
                 % Intervalos de tiempo entre turnos
                 tablaResultados(i, 7) = p_intervaloEntreTurnos;
                 
@@ -271,17 +271,18 @@ classdef parcial2
             disp (sTable);
         end
         
-        %% Recibe como parametros dos array (tiempoDeServicio e intervaloEntreTurnos)
-        % La cantidad de elementos de tiempoDeServicio debe ser igual
-        % al valor de p_corridas, y la cantidad de elementos de
-        % intervalosEntreTurnos igual al valor de p_experimentos
+        %% Recibe como parametros dos array (tiempoDeServicio, cantClientesTurno e intervaloEntreTurnos, cantServidores)
+        % La cantidad de elementos de tiempoDeServicio y cantClientesTurno 
+        % debe ser igual al valor de p_corridas, y la cantidad de elementos 
+        % de intervalosEntreTurnos y cantServidores igual al valor de 
+        % p_experimentos
                                                         
         function simulacion(p_experimentos, p_corridas, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos)
-            tablaResultados = zeros (p_experimentos, 11);
+            tablaResultados = zeros (p_experimentos, 10);
             v_barras = [];
                        
             for i = 1 : p_experimentos
-                tablaExperimento = parcial2.experimento(p_corridas, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos(1,i), i);
+                tablaExperimento = parcial2.experimento(p_corridas, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores(1,i), p_cantClientesTurno, p_intervaloEntreTurnos(1,i), i);
                 
                 
                 %Numero de corrida
@@ -293,25 +294,25 @@ classdef parcial2
                 % Lambda Cantidad de clientes
                 tablaResultados(i, 3) = p_lambdaClientes;
                 % Cantidad de Servidores
-                tablaResultados(i, 4) = p_cantServidores;
+                tablaResultados(i, 4) = p_cantServidores(1,i);
                 % Clientes por turno
-                tablaResultados(i, 5) = p_cantClientesTurno;
+                %tablaResultados(i, 5) = p_cantClientesTurno;
                 % Intervalos de tiempo entre turnos
-                tablaResultados(i, 6) = p_intervaloEntreTurnos(1,i);
+                tablaResultados(i, 5) = p_intervaloEntreTurnos(1,i);
                 
                 %RESULTADOS                 
                 %Media tiempo de espera en cola
-                tablaResultados(i, 7) = mean(tablaExperimento(:, 5)); 
+                tablaResultados(i, 6) = mean(tablaExperimento(:, 5)); 
                 %Variacion tiempo de espera en cola
-                tablaResultados(i, 8) = std(tablaExperimento(:, 5)); 
+                tablaResultados(i, 7) = std(tablaExperimento(:, 5)); 
                 %Media sujetos en la cola
-                tablaResultados(i, 9) = mean(tablaExperimento(:, 8)); 
+                tablaResultados(i, 8) = mean(tablaExperimento(:, 8)); 
                 %Media tiempo de ocio del servidor
-                tablaResultados(i, 10) = mean(tablaExperimento(:, 10));
+                tablaResultados(i, 9) = mean(tablaExperimento(:, 10));
                 %Variacion tiempo de ocio del servidor
-                tablaResultados(i, 11) = std(tablaExperimento(:, 10));
+                tablaResultados(i, 10) = std(tablaExperimento(:, 10));
                 
-                y = [tablaResultados(i, 9) tablaResultados(i, 7) tablaResultados(i, 10)];
+                y = [tablaResultados(i, 8) tablaResultados(i, 6) tablaResultados(i, 9)];
                 v_barras = [v_barras; y];
             end
             
@@ -333,7 +334,7 @@ classdef parcial2
         
         function mostrarResultadoSimulacion(p_tabla)
             fprintf('\n\n\t\t\tSimulacion Modelo de Colas\n\n');
-            colNames = {'Experimento','CantidadMaxClientes','LambdaCantClientes','CantidadServidores','ClientesXTurno','TiempoEntreTurnos','MediaTiempoEspera','VariacionTiempoEspera','MediaSujetosEnCola','MediaTiempoOcio','VariacionTiempoOcio'};
+            colNames = {'Experimento','CantidadMaxClientes','LambdaCantClientes','CantidadServidores','TiempoEntreTurnos','MediaTiempoEspera','VariacionTiempoEspera','MediaSujetosEnCola','MediaTiempoOcio','VariacionTiempoOcio'};
             sTable = array2table(p_tabla,'VariableNames',colNames);
             disp (sTable);
         end
