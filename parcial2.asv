@@ -262,11 +262,11 @@ classdef parcial2
         end
         
         function graficarExperimentoCantidad(p_cantidad, p_i)
-            b = bar(p_cantidad, 'FaceColor',[0 .5 .5],'EdgeColor',[.1 .1 .0],'LineWidth',1.5);
+            b = bar(p_cantidad, 'FaceColor',[0 .5 .5],'EdgeColor',[0 .9 .9],'LineWidth',1.5);
             str = sprintf('Media de personas en cola del experimento %d', p_i);
             title(str, 'FontSize',13);
-            ylabel('Cantidad de personas');
-            xlabel('Nro. de corrida');
+            ylabel('Cantidad');
+            xlabel('Nro. de experimento');
             grid on
             figure;
         end
@@ -350,7 +350,7 @@ classdef parcial2
         end
         
          function graficarSimulacionCantidad(p_cantidad)
-            b = bar(p_cantidad, 'FaceColor',[0 .5 .5],'EdgeColor',[.1 .1 .0],'LineWidth',1.5);
+            b = bar(p_cantidad, 'FaceColor',[0 .5 .5],'EdgeColor',[0 .9 .9],'LineWidth',1.5);
             title('Media de personas en cola de la simulacion', 'FontSize',14);          
             ylabel('Cantidad de personas');
             xlabel('Nro. de experimento');
