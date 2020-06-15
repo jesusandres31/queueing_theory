@@ -1,5 +1,6 @@
 
-%% Propuestas para presentacion de parcial
+%% 
+% Propuestas para presentacion de parcial
 %
 % Simulacion de turnos en un banco, donde el tiempo de espera maximo de los
 % clientes y el tiempo de ocio del servidor sea menor a un umbral
@@ -16,7 +17,6 @@
 % tiempo de servicio de la cola (PARCIAL)
 %
 %%
-%
 % M/M/N
 % M: Distribucion EXPONENCIAL del tiempo entre llegadas de clientes a la cola 
 % M: Distribucion EXPONENCIAL del tiempo de servicio al cliente que le toca ser atendido 
@@ -32,6 +32,23 @@
 classdef parcial2
     methods (Static)
         
+        %% Metodo que desarrolla una corrida del modelo de colas G/M/N.
+        %
+        %   Parametros: 
+        %      *p_maxCantClientes: entero, cantidad maxima de clientes.
+        %      *p_lambdaClientes: entero, media de clientes para dist. 
+        %        Poisson.
+        %      *p_tServ: real, media de tiempo de servicio en minutos para 
+        %           distribucion Exponencial.
+        %      *p_cantServidores: entero, cantidad de servidores.
+        %      *p_cantClientesTurno: entero, cantidad de clientes x turno.
+        %      *p_intervaloEntreTurnos: real, intervalo de tiempo entre 
+        %        turnos.
+        %
+        %   Retorno:
+        %      *tablaCorrida: array[nx10], contiene los valores recopilados
+        %        de la corrida.
+        %
         
         function tablaCorrida = corrida(p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos)                       
             
@@ -65,10 +82,6 @@ classdef parcial2
             servidores = zeros(1,p_cantServidores);
             
             tiemposServicio = guia5.exponencial(p_tServ, cantClientes);
-
-            v_TiempoEnCola = [];
-            v_OcioServidores = [];
-            v_barras = [];
             
             
             for i = 1 : cantClientes
@@ -80,25 +93,7 @@ classdef parcial2
                 servidores(1,:) = servidores(1,:) - llegadaACola(1, i);
 
                 %Control Servidores
-                servLibre = false;               
-                for j = 1 : p_cantServidores
-                    tiempoLibreServidor = servidores(1,j) * -1;
-                    if servLibre
-                        if servidores(1,j) <= 0
-                            
-                            tiemposOcioServidores(1,j) = tiempoLibreServidor;
-                            servidores(1,j) = 0;
-                        end
-                    else
-                        if servidores(1,j) <= 0 
-                            
-                            servLibre = true;
-                            servidorAsignado = j;
-                            tiemposOcioServidores(1,j) = tiempoLibreServidor;
-                            servidores(1,j) = tiemposServicio(1,i); 
-                        end
-                    end
-                end
+                [servLibre, servidores, tiemposOcioServidores, servidorAsignado] = parcial2.controlServidores(p_cantServidores, servidores, tiemposOcioServidores, tiemposServicio(1,i));
                 
                 llegadaACola(1, :) = llegadaACola(1, :) - llegadaACola(1, i);
                 sujetosCola = 0;
@@ -153,36 +148,67 @@ classdef parcial2
                 
                 tablaCorrida(i, 1:1:9) = tablaResultados(i, 1:1:9);
                 tablaCorrida(i,10) = tablaResultados(i, 10 + p_cantServidores);
-                
-                v_TiempoEnCola = [v_TiempoEnCola tablaResultados(i, 5)];
-                v_OcioServidores = [v_OcioServidores sum(tiemposOcioServidores)];
+
 
             end      
             parcial2.mostrarResultadoCorrida(tablaResultados);
             
-            med_TiempoEnCola = (mean(v_TiempoEnCola));
-            med_OcioServidores = (mean(v_OcioServidores));
-            v_barras = [med_TiempoEnCola; med_OcioServidores];
-           % parcial2.graficarCorrida(v_barras);
+
         end
         
+        %% Metodo que controla el estado de los servidores
+        %
+        % Parametros: 
+        %      *p_cantServidores: entero, cantidad de servidores.
+        %      *p_servidores: array[1xp_cantServidores], tiempos de
+        %        servicio asignados a cada servidor.
+        %      *p_tiemposOcioServidores: array[1xp_cantServidores], tiempos
+        %        de ocio de servicio de cada servidor.
+        %      *p_tiempoServicio: real, tiempo de servicio del cliente.
+        %
+        %   Retorno:
+        %      *servLibre: boolean, verdadero si tiene algun servidor
+        %       libre.
+        %      *p_servidores: array[1xp_cantServidores], tiempos de
+        %        servicio asignados a cada servidor.
+        %      *p_tiemposOcioServidores: array[1xp_cantServidores], tiempos
+        %        de ocio de servicio de cada servidor.
+        %      *servidorAsignado: entero, id del servidor que se le va a
+        %        asignar el cliente.
+        %
         
-        function graficarCorrida(p_barras)
-           figure(1)
-           b = bar(p_barras, 'EdgeColor',[.1 .1 0], 'LineWidth',1.5, 'FaceColor','flat');    
-           b.CData(1,:) = [0 .5 .5];
-           b.CData(2,:) = [.5 0 .5];
-           names={ 'Espera en Cola'; 'Ocio Servidores' };
-           set(gca,'xticklabel',names,'FontSize',10);
-         % xtickangle(45);
-         % legend(b, 'Media tiempo de llegada.','Media tiempo de espera en cola.','location','northoutside');
-         % legend([b(1), b(2)], '2014 Data','2015 Data')
-           title('Tiempos promedios de la simulación.');
-           ylabel('Tiempo en minutos.');
-           grid on
+        function [servLibre, p_servidores, p_tiemposOcioServidores, servidorAsignado] = controlServidores(p_cantServidores, p_servidores, p_tiemposOcioServidores, p_tiempoServicio)
+            servLibre = false;
+            servidorAsignado = 0;
+            for j = 1 : p_cantServidores
+                tiempoLibreServidor = p_servidores(1,j) * -1;
+                if servLibre
+                    if p_servidores(1,j) <= 0
+
+                        p_tiemposOcioServidores(1,j) = tiempoLibreServidor;
+                        p_servidores(1,j) = 0;
+                    end
+                else
+                    if p_servidores(1,j) <= 0 
+
+                        servLibre = true;
+                        servidorAsignado = j;
+                        p_tiemposOcioServidores(1,j) = tiempoLibreServidor;
+                        p_servidores(1,j) = p_tiempoServicio; 
+                    end
+                end
+            end
         end
+        
 
 
+        %% Metodo que muestra por pantalla los resultados recopilados de la corrida
+        %
+        % Parametros:
+        %      *p_tabla: array[nxm], contiene los valores recopilados de la
+        %        corrida.
+        %
+        
         function mostrarResultadoCorrida(p_tabla)
             
             fprintf('\n\n\t\t\tEjecucion de Modelo de Colas\n\n');
@@ -200,17 +226,29 @@ classdef parcial2
         
         
         
-        %% Recibe como parametro un array de tiempoDeServicio y cantClientesTurno
-        % La cantidad de elementos de estos arrays se debe corresponder con
-        % la cantidad de corridas estipuladas
+        %% Metodo que desarrolla un experimento del modelo de colas G/M/N.
+        %
+        %   Parametros:
+        %      *p_corridas: entero, cantidad de corridas del experimento.
+        %      *p_maxCantClientes: entero, cantidad maxima de clientes.
+        %      *p_lambdaClientes: entero, media de clientes para dist. 
+        %        Poisson.
+        %      *p_tServ: array[1xp_corridas], medias de tiempos de servicio
+        %        en minutos para distr. Exponencial por cada corrida.
+        %      *p_cantServidores: entero, cantidad de servidores.
+        %      *p_cantClientesTurno: array[1xp_corridas], cantidades de 
+        %        clientes x turno por cada corrida.
+        %      *p_intervaloEntreTurnos: real, intervalo de tiempo entre 
+        %        turnos.
+        %
+        %   Retorno:
+        %      *tablaExperimento: array[nx10], contiene los valores 
+        %        recopilados de todas las corridas del experimento.
         %                                       
+        
         function tablaExperimento = experimento(p_corridas, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos, p_i)
             tablaResultados = zeros (p_corridas, 12);
-            tablaExperimento = [];
-            v_tiempos = [];
-            v_cantidad = [];
-            y = [];
-            z = []; 
+            tablaExperimento = []; 
             
             for i = 1 : p_corridas
                 tablaCorrida = parcial2.corrida(p_maxCantClientes, p_lambdaClientes, p_tServ(1,i), p_cantServidores, p_cantClientesTurno(1,i), p_intervaloEntreTurnos);
@@ -247,22 +285,25 @@ classdef parcial2
 
                 tablaExperimento = [tablaExperimento ; tablaCorrida];
                 
-                y = [tablaResultados(i, 8) tablaResultados(i, 11)];
-                v_tiempos = [v_tiempos; y];
-                
-                z = [tablaResultados(i, 10)];
-                v_cantidad = [v_cantidad; z];
             end
             
              parcial2.mostrarResultadoExperimento(tablaResultados);   
             
-             parcial2.graficarExperimentoTiempos(v_tiempos, p_i);
+             parcial2.graficarExperimentoTiempos([tablaResultados(:, 8), tablaResultados(:, 11)], p_i);
              
-             parcial2.graficarExperimentoCantidad(v_cantidad, p_i);
+             parcial2.graficarExperimentoCantidad(tablaResultados(:, 10), p_i);
         end
         
+        %% Metodo para generar un grafico de barras con las medias de cantidad de personas en la cola en cada corrida del experimento
+        %
+        % Parametros:
+        %      *p_cantidad: arreglo[nx1], medias de cantidad de personas en
+        %        la cola en cada corrida
+        %      *p_i: entero, identificador de experimento
+        %
+        
         function graficarExperimentoCantidad(p_cantidad, p_i)
-            b = bar(p_cantidad, 'FaceColor',[0 .5 .5],'EdgeColor',[.1 .1 .0],'LineWidth',1.5);
+            bar(p_cantidad, 'FaceColor',[0 .5 .5],'EdgeColor',[.1 .1 .0],'LineWidth',1.5);
             str = sprintf('Media de personas en cola del experimento %d', p_i);
             title(str, 'FontSize',13);
             ylabel('Cantidad de personas');
@@ -270,6 +311,15 @@ classdef parcial2
             grid on
             figure;
         end
+        
+        
+        %% Metodo para generar un grafico de barras con las medias de tiempos de espera y ocio en cada corrida del experimento
+        %
+        % Parametros:
+        %      *p_tiempos: arreglo[nx2], medias de tiempos de espera y ocio
+        %        en cada corrida
+        %      *p_i: entero, identificador de experimento
+        %
         
         function graficarExperimentoTiempos(p_tiempos, p_i)
             b = bar(p_tiempos, 'EdgeColor',[.1 .1 .5], 'LineWidth',1);
@@ -282,6 +332,13 @@ classdef parcial2
             figure;
         end
 
+        %% Metodo que muestra por pantalla los resultados recopilados del experimento
+        %
+        % Parametros:
+        %      *p_tabla: array[nx12], contiene los valores recopilados del
+        %        experimento.
+        %
+        
         function mostrarResultadoExperimento(p_tabla)
             fprintf('\n\n\t\t\tExperimento Modelo de Colas\n\n');
             colNames = {'Corrida','CantidadMaxClientes','LambdaCantClientes','MediaTiemposDeServicio','CantidadServidores','ClientesXTurno','TiempoEntreTurnos','MediaTiempoEspera','VariacionTiempoEspera','MediaSujetosEnCola','MediaTiempoOcio','VariacionTiempoOcio'};
@@ -289,18 +346,27 @@ classdef parcial2
             disp (sTable);
         end
         
-        %% Recibe como parametros dos array (tiempoDeServicio, cantClientesTurno e intervaloEntreTurnos, cantServidores)
-        % La cantidad de elementos de tiempoDeServicio y cantClientesTurno 
-        % debe ser igual al valor de p_corridas, y la cantidad de elementos 
-        % de intervalosEntreTurnos y cantServidores igual al valor de 
-        % p_experimentos
+        %% Metodo que desarrolla una simulación del modelo de colas G/M/N.
+        %
+        %   Parametros:
+        %      *p_experimentos: entero, cantidad de experimentos de la
+        %        simulación
+        %      *p_corridas: entero, cantidad de corridas del experimento.
+        %      *p_maxCantClientes: entero, cantidad maxima de clientes.
+        %      *p_lambdaClientes: entero, media de clientes para dist. 
+        %        Poisson.
+        %      *p_tServ: array[1xp_corridas], medias de tiempos de servicio
+        %        en minutos para distr. Exponencial de cada corrida.
+        %      *p_cantServidores: array[1xp_experimentos] entero, cantidad 
+        %        de servidores por cada experimento.
+        %      *p_cantClientesTurno: array[1xp_corridas], cantidades de 
+        %        clientes x turno por cada corrida.
+        %      *p_intervaloEntreTurnos: array[1xp_experimentos], intervalo 
+        %        de tiempo entre turnos por cada experimento.
+        %
                                                         
         function simulacion(p_experimentos, p_corridas, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos)
             tablaResultados = zeros (p_experimentos, 10);
-            v_tiempos = [];
-            v_cantidad = [];
-            y = [];
-            z = []; 
             
             for i = 1 : p_experimentos
                 tablaExperimento = parcial2.experimento(p_corridas, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores(1,i), p_cantClientesTurno, p_intervaloEntreTurnos(1,i), i);
@@ -333,42 +399,54 @@ classdef parcial2
                 %Variacion tiempo de ocio del servidor
                 tablaResultados(i, 10) = std(tablaExperimento(:, 10));
                 
-                y = [tablaResultados(i, 6) tablaResultados(i, 9)];
-                v_tiempos = [v_tiempos; y];
-                
-                z = [tablaResultados(i, 8)];
-                v_cantidad = [v_cantidad; z];
-                
             end
             
             parcial2.mostrarResultadoSimulacion(tablaResultados);
             
-            parcial2.graficarSimulacionCantidad(v_cantidad);
+            parcial2.graficarSimulacionCantidad(tablaResultados(:, 8));
             
-            parcial2.graficarSimulacionTiempos(v_tiempos);
+            parcial2.graficarSimulacionTiempos([tablaResultados(:, 6), tablaResultados(:, 9)]);
 
         end
         
+        %% Metodo para generar un grafico de barras con las medias de cantidad de personas en la cola en cada experimento de la corrida
+        %
+        % Parametros:
+        %      *p_cantidad: arreglo[nx1], medias de cantidad de personas en
+        %        la cola en cada experimento
+        %
+        
          function graficarSimulacionCantidad(p_cantidad)
-            b = bar(p_cantidad, 'FaceColor',[0 .5 .5],'EdgeColor',[.1 .1 .0],'LineWidth',1.5);
+            bar(p_cantidad, 'FaceColor',[0 .5 .5],'EdgeColor',[.1 .1 .0],'LineWidth',1.5);
             title('Media de personas en cola de la simulacion', 'FontSize',14);          
             ylabel('Cantidad de personas');
             xlabel('Nro. de experimento');
             grid on
             figure;
-           % legend(b,'Tiempo de espera en cola','Tiempo de ocio de los servidores','location','northoutside');
-        end
+         end
+        
+        %% Metodo para generar un grafico de barras con las medias de tiempos de espera y ocio en cada experimento de la simulación
+        %
+        % Parametros:
+        %      *p_tiempos: arreglo[nx2], medias de tiempos de espera y ocio
+        %        en cada experimento
+        %
         
          function graficarSimulacionTiempos(p_tiempos)
             b = bar(p_tiempos, 'EdgeColor',[.1 .1 .0], 'LineWidth',1.5, 'FaceColor','flat');
-          % title('Tiempos promedios de la simulacion');
             title('Valores medios de la simulacion', 'FontSize',14);          
             ylabel('Tiempo en minutos');
             xlabel('Nro. de experimento');
             grid on
-            legend(b,'Tiempo de espera en cola','Tiempo de ocio de los servidores','location','northoutside');
-          % legend(b,'Personas en la cola','Espera en cola','Ocio servidores','location','northoutside');
-        end
+            legend(b,'Tiempo de espera en cola','Tiempo de ocio de los servidores','location','northoutside');;
+         end
+        
+         %% Metodo que muestra por pantalla los resultados recopilados de la simulación
+        %
+        % Parametros:
+        %      *p_tabla: array[nx10], contiene los valores recopilados de
+        %       la simulación.
+        %
         
         function mostrarResultadoSimulacion(p_tabla)
             fprintf('\n\n\t\t\tSimulacion Modelo de Colas\n\n');
