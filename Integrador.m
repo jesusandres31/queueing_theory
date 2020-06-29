@@ -32,7 +32,16 @@
 classdef Integrador
         
     methods(Static)
-        
+        %% Metodo para exhibir los formularios para ingreso de parámetros de las colas
+        %
+        %   Parametros: 
+        %      *p_colas: entero, cantidad de colas.
+        %      *p_corridas: entero, cantidad de corridas.
+        %      *p_experimentos: entero, cantidad de experimentos.
+        %      *p_tMaxEspera: real, tiempo maxima espera de los clientes.
+        %      *p_cMaxCola: entero, cantidad maxima de personas en la cola.
+        %
+     
         function interface(p_colas, p_corridas, p_experimentos, p_tMaxEspera, p_cMaxCola)                     
             titulo = {''};
             corr = p_corridas;
@@ -74,6 +83,38 @@ classdef Integrador
             
         end
         
+        %% Metodo que desarrolla una corrida del modelo de colas G/M/N de dos colas.
+        %
+        %   Parametros:
+        %      *p_colas: entero, cantidad de colas.
+        %      *p_titulo: array[1Xp_colas], titulos descriptivos de cada
+        %        cola.
+        %      *p_maxCantClientes: array[1Xp_colas], maxima cantidad de
+        %        clientes por cola.
+        %      *p_lambdaClientes: array[1Xp_colas], cantidad media (lambda)
+        %        clientes por cola. 
+        %      *p_tServ: array[1Xp_colas], tiempo medio de servicio por
+        %        cola.
+        %      *p_cantServidores: array[1Xp_colas], cantidad servidores
+        %        por cola.
+        %      *p_cantClientesTurno: array[1Xp_colas], clientes por turno
+        %        por cola.
+        %      *p_intervaloEntreTurnos: array[1Xp_colas], tiempo entre
+        %        turnos por cola.
+        %      *p_tMaxEspera: real, tiempo maxima espera de los clientes.
+        %      *p_cMaxCola: entero, cantidad maxima de personas en la cola.
+        %
+        %   Retorno:
+        %      *tabla: array[nX10], contiene los valores recopilados
+        %        de la corrida.
+        %      *tamanoCola: entero, total personas atendidas en la corrida.
+        %      *cantPersMaxEspera: entero, total personas que esperaron mas
+        %        que el tiempo maximo de espera en la cola.
+        %      *tiempoTotalTranscurrido: real, tiempo total que llevo la
+        %        corrida.
+        %      *tiempoColaExcedido: real, tiempo total en que la cola
+        %        supero el maximo establecido.
+        %
         
         function [tabla, tamanoCola, cantPersMaxEspera, tiempoTotalTranscurrido, tiempoColaExcedido] = corrida (p_colas, p_titulo, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos, p_tMaxEspera, p_cMaxCola)
             import pkg.Parcial2.*;
@@ -88,6 +129,13 @@ classdef Integrador
         end
         
         
+        %% Metodo que genera el formulario de carga
+        %
+        %   Parametros:
+        %      *p_cola: entero, numero de orden de la cola
+        %      *p_corridas: entero, cantidad de corridas.
+        %      *p_experimentos: entero, cantidad de experimentos.
+        %
         
         function variables = gui(p_cola, p_corridas, p_experimentos)
             titulo = 'Ingrese Datos Cola ';
@@ -116,7 +164,24 @@ classdef Integrador
             variables = inputdlg(dialogo, titulo, dimensiones);
         end
         
-  
+        %% Metodo que calcula personas y tiempos que superan los umbrales establecidos de espera y cola.
+        %
+        %   Parametros:
+        %      *tabla: array[nX10], contiene los valores recopilados de la 
+        %        corrida.
+        %      *p_tMaxEspera: real, tiempo maxima espera de los clientes.
+        %      *p_cMaxCola: entero, cantidad maxima de personas en la cola.
+        %
+        %   Retorno:
+        %      *tamanoCola: entero, total personas atendidas en la corrida.
+        %      *cantPersMaxEspera: entero, total personas que esperaron mas
+        %        que el tiempo maximo de espera en la cola.
+        %      *tiempoTotalTranscurrido: real, tiempo total que llevo la
+        %        corrida.
+        %      *tiempoColaExcedido: real, tiempo total en que la cola
+        %        supero el maximo establecido.
+        %
+        
         function [tamanoCola, cantPersMaxEspera, tiempoTotalTranscurrido, tiempoColaExcedido] = calcularTiempoEspera(p_tabla, p_tMaxEspera, p_cMaxCola)
             personas = size(p_tabla, 1);
             cantPersMaxEspera = 0;
@@ -157,10 +222,35 @@ classdef Integrador
         end
         
         
-        %% Recibe como parametro un array de cantClientesTurno
-        % La cantidad de elementos de este array se debe corresponder con
-        % la cantidad de corridas estipuladas
+        %% Metodo que desarrolla un experimento del modelo de colas G/M/N de dos colas.
         %
+        %   Parametros:
+        %      *p_corridas: entero, cantidad de corridas. 
+        %      *p_colas: entero, cantidad de colas.
+        %      *p_titulo: array[1Xp_colas], titulos descriptivos de cada
+        %        cola.
+        %      *p_maxCantClientes: array[1Xp_colas], maxima cantidad de
+        %        clientes por cola.
+        %      *p_lambdaClientes: array[1Xp_colas], cantidad media (lambda)
+        %        clientes por cola. 
+        %      *p_tServ: array[1Xp_colas], tiempo medio de servicio por
+        %        cola.
+        %      *p_cantServidores: array[1Xp_colas], cantidad servidores
+        %        por cola.
+        %      *p_cantClientesTurno: array[p_corridasXp_colas], vector de 
+        %        clientes por turno por cola de cada corrida.
+        %      *p_intervaloEntreTurnos: array[1Xp_colas], tiempo entre
+        %        turnos por cola.
+        %      *p_tMaxEspera: real, tiempo maxima espera de los clientes.
+        %      *p_cMaxCola: entero, cantidad maxima de personas en la cola.
+        %
+        %   Retorno:
+        %      *tabla: array[nX10], contiene los valores recopilados
+        %        del experimento.
+        %      *tiemposEspera: array[mX4], contiene los calculos de tiempos
+        %      y personas totales y los que superaron los umbrales establec
+        %
+
         function [tablaExperimento, tiemposEspera] = experimento(p_corridas, p_colas, p_titulo, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos, p_tMaxEspera, p_cMaxCola)
             tablaResultados = [];
             tiemposEspera = zeros(p_corridas,4);
@@ -218,6 +308,12 @@ classdef Integrador
 
         end
 
+        %% Metodo que muestra por pantalla de forma tabular los resultados del experimento
+        %
+        %   Parametros:
+        %      *p_tabla: *tabla: array[nX14], contiene los parametros y
+        %       resultados del experimento.
+        %
         function mostrarResultadoExperimento(p_tabla)
             fprintf('\n\n\t\t\tExperimento Modelo de Colas\n\n');
             colNames = {'Corrida','CantidadMaxClientes','LambdaCantClientes','MediaTiemposDeServicio','CantidadServidores','ClientesXTurno','TiempoEntreTurnos','MediaTiempoEspera','VariacionTiempoEspera','MediaSujetosEnCola','MediaTiempoOcio','VariacionTiempoOcio','PorcIncumpEspera','PorcIncumpCola'};
@@ -226,10 +322,30 @@ classdef Integrador
         end  
         
        
-        %% Recibe como parametros dos array (cantClientesTurno y cantServidores)
-        % La cantidad de elementos de cantClientesTurno debe ser igual
-        % al valor de p_corridas, y la cantidad de elementos de
-        % cantServidores igual al valor de p_experimentos
+        %% Metodo que desarrolla una simulacion del modelo de colas G/M/N de dos colas.
+        %
+        %   Parametros:
+        %      *p_experimentos: entero, cantidad de experimentos.
+        %      *p_corridas: entero, cantidad de corridas. 
+        %      *p_colas: entero, cantidad de colas.
+        %      *p_titulo: array[1Xp_colas], titulos descriptivos de cada
+        %        cola.
+        %      *p_maxCantClientes: array[1Xp_colas], maxima cantidad de
+        %        clientes por cola.
+        %      *p_lambdaClientes: array[1Xp_colas], cantidad media (lambda)
+        %        clientes por cola. 
+        %      *p_tServ: array[1Xp_colas], tiempo medio de servicio por
+        %        cola.
+        %      *p_cantServidores: array[p_experimentosXp_colas], vector de  
+        %        cantidad de servidores por cola de cada experimento.
+        %      *p_cantClientesTurno: array[p_corridasXp_colas], vector de 
+        %        clientes por turno por cola de cada corrida.
+        %      *p_intervaloEntreTurnos: array[1Xp_colas], tiempo entre
+        %        turnos por cola.
+        %      *p_tMaxEspera: real, tiempo maxima espera de los clientes.
+        %      *p_cMaxCola: entero, cantidad maxima de personas en la cola.
+        %
+        
         function simulacion(p_experimentos, p_corridas, p_colas, p_titulo, p_maxCantClientes, p_lambdaClientes, p_tServ, p_cantServidores, p_cantClientesTurno, p_intervaloEntreTurnos, p_tMaxEspera, p_cMaxCola)
             tablaResultados = [];
             tiemposEspera = zeros(p_corridas,4);
@@ -279,6 +395,12 @@ classdef Integrador
 
         end
        
+       %% Metodo que muestra por pantalla de forma tabular los resultados de la simulacion 
+       %
+       %   Parametros:
+       %      *p_tabla: *tabla: array[nX13], contiene los parametros y
+       %       resultados de la simulacion.
+       %
         
         function mostrarResultadoSimulacion(p_tabla)
             fprintf('\n\n\t\t\tSimulacion Modelo de Colas\n\n');
